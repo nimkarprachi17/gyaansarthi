@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/new")({
   head: () => ({ meta: [{ title: "नया वीडियो — स्मार्टस्टडी AI" }] }),
-  component: NewVideo;
+  component: NewVideo,
 });
 
 function NewVideo() {
