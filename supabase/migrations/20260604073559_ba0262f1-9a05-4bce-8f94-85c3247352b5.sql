@@ -1,0 +1,1 @@
+ALTER TABLE public.attempts ADD COLUMN IF NOT EXISTS time_taken_seconds integer NOT NULL DEFAULT 0;
