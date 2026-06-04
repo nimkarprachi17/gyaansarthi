@@ -22,6 +22,7 @@ export type Database = {
           quiz_id: string
           score: number
           strong_concepts: Json | null
+          time_taken_seconds: number
           total: number
           user_id: string
           video_id: string
@@ -34,6 +35,7 @@ export type Database = {
           quiz_id: string
           score: number
           strong_concepts?: Json | null
+          time_taken_seconds?: number
           total: number
           user_id: string
           video_id: string
@@ -46,6 +48,7 @@ export type Database = {
           quiz_id?: string
           score?: number
           strong_concepts?: Json | null
+          time_taken_seconds?: number
           total?: number
           user_id?: string
           video_id?: string

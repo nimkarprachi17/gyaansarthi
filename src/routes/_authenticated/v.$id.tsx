@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getVideoBundle, saveAttempt } from "@/lib/video.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, ListChecks, Loader2, ChevronLeft, ChevronRight, ArrowLeft, Sparkles, CheckCircle2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { BookOpen, ListChecks, Loader2, ChevronLeft, ChevronRight, ArrowLeft, Sparkles, CheckCircle2, Clock, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -209,17 +210,34 @@ function NotesView({ notes }: { notes: NotesContent }) {
   );
 }
 
+function formatTime(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+}
+
 function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: string; questions: QuizQuestion[] }) {
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() => questions.map(() => -1));
+  const [elapsed, setElapsed] = useState(0);
+  const startRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!started) return;
+    startRef.current = Date.now();
+    const t = setInterval(() => {
+      if (startRef.current) setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [started]);
 
   const save = useServerFn(saveAttempt);
   const mut = useMutation({
-    mutationFn: () => save({ data: { quizId, videoId, answers } }),
+    mutationFn: () => save({ data: { quizId, videoId, answers, timeTakenSeconds: elapsed } }),
     onSuccess: (res) => {
-      toast.success(`स्कोर: ${res.score}/${res.total}`);
+      toast.success(`जमा हो गया · ${res.score}/${res.total}`);
       navigate({ to: "/v/$id/results/$attemptId", params: { id: videoId, attemptId: res.id } });
     },
     onError: (e: Error) => toast.error(e.message || "सहेजने में विफल"),
@@ -233,7 +251,8 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
           <Sparkles className="size-6 text-primary-foreground" />
         </div>
         <h3 className="text-2xl font-bold mb-2">क्विज़ के लिए तैयार हैं?</h3>
-        <p className="text-muted-foreground mb-6">{questions.length} प्रश्न · आसान {counts.easy ?? 0} · मध्यम {counts.medium ?? 0} · कठिन {counts.hard ?? 0}</p>
+        <p className="text-muted-foreground mb-2">{questions.length} प्रश्न · आसान {counts.easy ?? 0} · मध्यम {counts.medium ?? 0} · कठिन {counts.hard ?? 0}</p>
+        <p className="text-xs text-muted-foreground mb-6">परीक्षा के दौरान उत्तर सही/गलत नहीं दिखाए जाएँगे। जमा करने के बाद विस्तृत विश्लेषण मिलेगा।</p>
         <Button size="lg" className="bg-hero hover:opacity-90" onClick={() => setStarted(true)}>क्विज़ शुरू करें</Button>
       </div>
     );
@@ -241,59 +260,110 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
 
   const q = questions[current];
   const progress = ((current + 1) / questions.length) * 100;
-  const allAnswered = answers.every((a) => a >= 0);
+  const answeredCount = answers.filter((a) => a >= 0).length;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-          <span>प्रश्न {current + 1} / {questions.length}</span>
+    <div className="space-y-4">
+      {/* Sticky exam header */}
+      <div className="sticky top-0 z-10 -mx-2 sm:mx-0 rounded-none sm:rounded-xl border border-border bg-card/95 backdrop-blur px-4 py-3 shadow-soft flex items-center justify-between gap-3">
+        <div className="text-sm">
+          <span className="font-semibold">प्रश्न {current + 1}</span>
+          <span className="text-muted-foreground"> / {questions.length}</span>
+          <span className="ml-3 text-xs text-muted-foreground">उत्तरित: {answeredCount}/{questions.length}</span>
+        </div>
+        <div className="flex items-center gap-2 font-mono text-sm tabular-nums bg-primary/10 text-primary px-3 py-1.5 rounded-lg">
+          <Clock className="size-4" /> {formatTime(elapsed)}
+        </div>
+      </div>
+
+      <Progress value={progress} className="h-1.5" />
+
+      {/* Question palette */}
+      <div className="rounded-xl border border-border bg-card p-3">
+        <div className="flex flex-wrap gap-1.5">
+          {questions.map((_, i) => {
+            const isCurrent = i === current;
+            const isAnswered = answers[i] >= 0;
+            return (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`size-8 rounded-md text-xs font-semibold border transition-all ${
+                  isCurrent ? "border-primary bg-primary text-primary-foreground" :
+                  isAnswered ? "border-success/40 bg-success/10 text-success" :
+                  "border-border bg-muted text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+        <div className="mb-4 flex items-center gap-2">
           <Badge variant="outline" className="capitalize">
             {q.difficulty === "easy" ? "आसान" : q.difficulty === "medium" ? "मध्यम" : "कठिन"}
           </Badge>
+          <Badge variant="secondary" className="text-[10px]">{q.concept}</Badge>
         </div>
-        <Progress value={progress} className="h-1.5" />
-      </div>
 
-      <h3 className="text-lg sm:text-xl font-semibold leading-snug mb-6">{q.question}</h3>
+        <h3 className="text-lg sm:text-xl font-semibold leading-snug mb-6">{q.question}</h3>
 
-      <div className="space-y-3 mb-8">
-        {q.options.map((opt, i) => {
-          const selected = answers[current] === i;
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setAnswers((a) => a.map((v, idx) => (idx === current ? i : v)))}
-              className={`w-full text-left rounded-xl border-2 p-4 transition-all flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
-            >
-              <span className={`size-7 rounded-lg grid place-items-center text-sm font-semibold shrink-0 ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                {String.fromCharCode(65 + i)}
-              </span>
-              <span className="leading-relaxed">{opt}</span>
-            </button>
-          );
-        })}
-      </div>
+        <div className="space-y-3 mb-8">
+          {q.options.map((opt, i) => {
+            const selected = answers[current] === i;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setAnswers((a) => a.map((v, idx) => (idx === current ? i : v)))}
+                className={`w-full text-left rounded-xl border-2 p-4 transition-all flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+              >
+                <span className={`size-7 rounded-lg grid place-items-center text-sm font-semibold shrink-0 ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <span className="leading-relaxed">{opt}</span>
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <Button variant="ghost" disabled={current === 0} onClick={() => setCurrent((c) => c - 1)} className="gap-2">
-          <ChevronLeft className="size-4" /> पिछला
-        </Button>
-        {current < questions.length - 1 ? (
-          <Button onClick={() => setCurrent((c) => c + 1)} className="gap-2 bg-hero hover:opacity-90">
-            अगला <ChevronRight className="size-4" />
+        <div className="flex items-center justify-between gap-3">
+          <Button variant="ghost" disabled={current === 0} onClick={() => setCurrent((c) => c - 1)} className="gap-2">
+            <ChevronLeft className="size-4" /> पिछला
           </Button>
-        ) : (
-          <Button
-            onClick={() => mut.mutate()}
-            disabled={!allAnswered || mut.isPending}
-            className="gap-2 bg-success hover:bg-success/90 text-success-foreground"
-          >
-            {mut.isPending && <Loader2 className="size-4 animate-spin" />}
-            क्विज़ जमा करें
-          </Button>
-        )}
+          <div className="flex items-center gap-2">
+            {current < questions.length - 1 && (
+              <Button onClick={() => setCurrent((c) => c + 1)} className="gap-2 bg-hero hover:opacity-90">
+                अगला <ChevronRight className="size-4" />
+              </Button>
+            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant={current === questions.length - 1 ? "default" : "outline"} className="gap-2">
+                  <Flag className="size-4" /> जमा करें
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>क्विज़ जमा करें?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    आपने {answeredCount}/{questions.length} प्रश्नों के उत्तर दिए हैं। जमा करने के बाद आप उत्तर नहीं बदल सकेंगे।
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>रद्द करें</AlertDialogCancel>
+                  <AlertDialogAction disabled={mut.isPending} onClick={() => mut.mutate()}>
+                    {mut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
+                    हाँ, जमा करें
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
       </div>
     </div>
   );
