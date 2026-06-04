@@ -350,7 +350,7 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
                 अगला <ChevronRight className="size-4" />
               </Button>
             )}
-            <AlertDialog>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
               <AlertDialogTrigger asChild>
                 <Button variant={current === questions.length - 1 ? "default" : "outline"} className="gap-2">
                   <Flag className="size-4" /> जमा करें
@@ -364,8 +364,14 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>रद्द करें</AlertDialogCancel>
-                  <AlertDialogAction disabled={mut.isPending} onClick={() => mut.mutate()}>
+                  <AlertDialogCancel disabled={mut.isPending}>रद्द करें</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={mut.isPending}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      mut.mutate();
+                    }}
+                  >
                     {mut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
                     हाँ, जमा करें
                   </AlertDialogAction>
