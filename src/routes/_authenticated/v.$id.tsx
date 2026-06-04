@@ -222,6 +222,7 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() => questions.map(() => -1));
   const [elapsed, setElapsed] = useState(0);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -236,9 +237,18 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
   const save = useServerFn(saveAttempt);
   const mut = useMutation({
     mutationFn: () => save({ data: { quizId, videoId, answers, timeTakenSeconds: elapsed } }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
+      setConfirmOpen(false);
       toast.success(`जमा हो गया · ${res.score}/${res.total}`);
-      navigate({ to: "/v/$id/results/$attemptId", params: { id: videoId, attemptId: res.id } });
+      // Defer navigation so the dialog has time to unmount cleanly
+      setTimeout(() => {
+        navigate({
+          to: "/v/$id/results/$attemptId",
+          params: { id: videoId, attemptId: res.id },
+        }).catch(() => {
+          window.location.href = `/v/${videoId}/results/${res.id}`;
+        });
+      }, 50);
     },
     onError: (e: Error) => toast.error(e.message || "सहेजने में विफल"),
   });
@@ -340,7 +350,7 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
                 अगला <ChevronRight className="size-4" />
               </Button>
             )}
-            <AlertDialog>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
               <AlertDialogTrigger asChild>
                 <Button variant={current === questions.length - 1 ? "default" : "outline"} className="gap-2">
                   <Flag className="size-4" /> जमा करें
@@ -354,8 +364,14 @@ function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: str
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>रद्द करें</AlertDialogCancel>
-                  <AlertDialogAction disabled={mut.isPending} onClick={() => mut.mutate()}>
+                  <AlertDialogCancel disabled={mut.isPending}>रद्द करें</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={mut.isPending}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      mut.mutate();
+                    }}
+                  >
                     {mut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
                     हाँ, जमा करें
                   </AlertDialogAction>
