@@ -167,6 +167,7 @@ export const saveAttempt = createServerFn({ method: "POST" })
       quizId: z.string().uuid(),
       videoId: z.string().uuid(),
       answers: z.array(z.number().int().min(-1).max(3)),
+      timeTakenSeconds: z.number().int().min(0).max(60 * 60 * 6).optional(),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -197,6 +198,7 @@ export const saveAttempt = createServerFn({ method: "POST" })
       answers: data.answers,
       weak_concepts: weak,
       strong_concepts: strong,
+      time_taken_seconds: data.timeTakenSeconds ?? 0,
     }).select("id").single();
     if (error || !attempt) throw new Error(error?.message ?? "Failed to save attempt");
     return { id: attempt.id, score, total: questions.length, weak, strong };
