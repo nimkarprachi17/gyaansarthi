@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getDashboard } from "@/lib/video.functions";
 import { youtubeThumb } from "@/lib/youtube";
-import { Plus, Video, ListChecks, Target, Flame, TrendingDown, TrendingUp, Loader2, Sparkles } from "lucide-react";
+import { Plus, Video, ListChecks, Target, Flame, TrendingDown, TrendingUp, Loader2, Sparkles, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
