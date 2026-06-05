@@ -107,17 +107,21 @@ export type QuizQuestion = {
   concept: string;
 };
 
-export async function generateQuiz(transcript: string, lang: Lang, title?: string): Promise<QuizQuestion[]> {
+export async function generateQuiz(transcript: string, lang: Lang, title?: string, avoidQuestions: string[] = []): Promise<QuizQuestion[]> {
   const isHi = lang === "hi";
   const langInstruction = isHi
     ? `सभी प्रश्न, विकल्प, और स्पष्टीकरण सरल हिंदी में लिखें। तकनीकी शब्द अंग्रेज़ी में रखें।`
     : `Write all questions, options, and explanations in clear English.`;
 
+  const avoidBlock = avoidQuestions.length > 0
+    ? `\n\nIMPORTANT — DO NOT REPEAT these previously-asked questions or any near-paraphrase. Generate FRESH questions covering different angles, subtopics, scenarios, and edge cases:\n${avoidQuestions.slice(0, 40).map((q, i) => `${i + 1}. ${q}`).join("\n")}\n`
+    : "";
+
   const system = `You are a senior exam-setter creating a challenging quiz from a video transcript. ${langInstruction}
 
 Strict rules:
-- Generate exactly 12 MCQs.
-- Difficulty mix: 2-3 easy, 6 medium, 3-4 hard.
+- Generate exactly 10 MCQs.
+- Difficulty mix MUST be: 2 easy (20%), 5 medium (50%), 3 hard (30%).
 - AVOID trivial memorization or copy-paste-from-transcript questions.
 - PREFER: application-based, scenario-based, conceptual reasoning, comparative analysis, edge cases, interview-style.
 - Each question must have exactly 4 distinct, plausible options.
@@ -138,7 +142,7 @@ Strict rules:
   ]
 }`;
 
-  const user = `${title ? `Video title: ${title}\n\n` : ""}Transcript:\n"""\n${transcript.slice(0, 60000)}\n"""\n\nGenerate the quiz JSON now.`;
+  const user = `${title ? `Video title: ${title}\n\n` : ""}Transcript:\n"""\n${transcript.slice(0, 60000)}\n"""${avoidBlock}\n\nGenerate the quiz JSON now.`;
 
   const res = await callAIJson<{ questions: QuizQuestion[] }>({ system, user });
   if (!Array.isArray(res?.questions) || res.questions.length === 0) {
