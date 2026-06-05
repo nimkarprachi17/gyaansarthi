@@ -39,10 +39,27 @@ function formatDuration(s: number) {
 
 function Results() {
   const { id, attemptId } = Route.useParams();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
   const fetcher = useServerFn(getAttempt);
+  const historyFetcher = useServerFn(getAttemptHistory);
+  const regen = useServerFn(regenerateQuiz);
   const { data, isLoading } = useQuery({
     queryKey: ["attempt", attemptId],
     queryFn: () => fetcher({ data: { id: attemptId } }),
+  });
+  const { data: history } = useQuery({
+    queryKey: ["attempt-history", id],
+    queryFn: () => historyFetcher({ data: { videoId: id } }),
+  });
+  const regenMut = useMutation({
+    mutationFn: () => regen({ data: { videoId: id } }),
+    onSuccess: () => {
+      toast.success("नया क्विज़ तैयार है!");
+      qc.invalidateQueries({ queryKey: ["video", id] });
+      navigate({ to: "/v/$id", params: { id }, search: { retake: 1 } as never });
+    },
+    onError: (e: Error) => toast.error(e.message || "क्विज़ बनाने में विफल"),
   });
 
   if (isLoading) {
