@@ -102,7 +102,7 @@ function VideoWorkspace() {
           <p className="text-sm text-muted-foreground">सामग्री तैयार हो रही है...</p>
         </div>
       ) : (
-        <Tabs defaultValue="notes" className="w-full">
+        <Tabs defaultValue={retake ? "quiz" : "notes"} className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-12">
             <TabsTrigger value="notes" className="gap-2 text-base"><BookOpen className="size-4" /> नोट्स</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-2 text-base"><ListChecks className="size-4" /> क्विज़</TabsTrigger>
@@ -111,7 +111,7 @@ function VideoWorkspace() {
             <NotesView notes={notesContent} />
           </TabsContent>
           <TabsContent value="quiz" className="mt-6">
-            <QuizView quizId={quiz!.id} videoId={video.id} questions={questions} />
+            <QuizView key={quiz!.id + (retake ? "-retake" : "")} quizId={quiz!.id} videoId={video.id} questions={questions} autoStart={retake} />
           </TabsContent>
         </Tabs>
       )}
