@@ -38,8 +38,10 @@ function Dashboard() {
   }
   if (!data) return null;
 
-  const { profile, videos, stats, weakAreas, strongAreas } = data;
+  const { profile, videos, stats, weakAreas, strongAreas, trend } = data;
   const name = profile?.display_name ?? "छात्र";
+  const trendData = trend ?? [];
+  const maxPct = 100;
 
   return (
     <div className="space-y-8">
@@ -58,12 +60,35 @@ function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard icon={Video} label="कुल वीडियो" value={stats.totalVideos} />
         <StatCard icon={ListChecks} label="क्विज़ प्रयास" value={stats.totalAttempts} accent="bg-accent text-accent-foreground" />
-        <StatCard icon={Target} label="औसत स्कोर" value={`${stats.avgScore}%`} accent="bg-success/15 text-success" />
+        <StatCard icon={Target} label="औसत सटीकता" value={`${stats.avgScore}%`} accent="bg-success/15 text-success" />
+        <StatCard icon={Trophy} label="बेस्ट स्कोर" value={`${stats.bestScore}%`} accent="bg-primary/15 text-primary" />
         <StatCard icon={Flame} label="लगातार दिन" value={stats.streak} accent="bg-saffron/15 text-saffron" />
       </div>
+
+      {/* Learning trend */}
+      {trendData.length >= 2 && (
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="size-4 text-primary" />
+            <h3 className="font-semibold">सीखने का ट्रेंड (अंतिम {trendData.length} प्रयास)</h3>
+          </div>
+          <div className="flex items-end gap-2 h-32">
+            {trendData.map((t, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 group">
+                <span className="text-[10px] font-semibold text-muted-foreground opacity-0 group-hover:opacity-100 transition">{t.pct}%</span>
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-primary to-primary-glow transition-all"
+                  style={{ height: `${(t.pct / maxPct) * 100}%`, minHeight: "4px" }}
+                  title={`${t.pct}% · ${new Date(t.date).toLocaleDateString("hi-IN")}`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Weak / Strong */}
       {(weakAreas.length > 0 || strongAreas.length > 0) && (
