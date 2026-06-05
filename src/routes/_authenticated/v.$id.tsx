@@ -41,6 +41,8 @@ type QuizQuestion = {
 
 function VideoWorkspace() {
   const { id } = Route.useParams();
+  const search = Route.useSearch() as { retake?: 1 };
+  const retake = search.retake === 1;
   const isResultsRoute = useRouterState({
     select: (state) => state.location.pathname.includes(`/v/${id}/results/`),
   });
