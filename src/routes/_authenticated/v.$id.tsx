@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
@@ -40,6 +40,14 @@ type QuizQuestion = {
 
 function VideoWorkspace() {
   const { id } = Route.useParams();
+  const isResultsRoute = useRouterState({
+    select: (state) => state.location.pathname.includes(`/v/${id}/results/`),
+  });
+
+  if (isResultsRoute) {
+    return <Outlet />;
+  }
+
   const fetcher = useServerFn(getVideoBundle);
   const { data, isLoading } = useQuery({
     queryKey: ["video", id],
