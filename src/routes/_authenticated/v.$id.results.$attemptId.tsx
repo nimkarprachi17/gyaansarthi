@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { getAttempt } from "@/lib/video.functions";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAttempt, getAttemptHistory, regenerateQuiz } from "@/lib/video.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   Trophy,
   CheckCircle2,
@@ -17,6 +18,10 @@ import {
   Clock,
   Timer,
   BookOpen,
+  Sparkles,
+  History,
+  Award,
+  Minus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/v/$id/results/$attemptId")({
@@ -34,10 +39,27 @@ function formatDuration(s: number) {
 
 function Results() {
   const { id, attemptId } = Route.useParams();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
   const fetcher = useServerFn(getAttempt);
+  const historyFetcher = useServerFn(getAttemptHistory);
+  const regen = useServerFn(regenerateQuiz);
   const { data, isLoading } = useQuery({
     queryKey: ["attempt", attemptId],
     queryFn: () => fetcher({ data: { id: attemptId } }),
+  });
+  const { data: history } = useQuery({
+    queryKey: ["attempt-history", id],
+    queryFn: () => historyFetcher({ data: { videoId: id } }),
+  });
+  const regenMut = useMutation({
+    mutationFn: () => regen({ data: { videoId: id } }),
+    onSuccess: () => {
+      toast.success("नया क्विज़ तैयार है!");
+      qc.invalidateQueries({ queryKey: ["video", id] });
+      navigate({ to: "/v/$id", params: { id }, search: { retake: 1 } as never });
+    },
+    onError: (e: Error) => toast.error(e.message || "क्विज़ बनाने में विफल"),
   });
 
   if (isLoading) {
@@ -193,12 +215,81 @@ function Results() {
         </div>
       </div>
 
+      {/* Progress tracking */}
+      {history && history.attempts.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Award className="size-4 text-primary" />
+            <h2 className="font-bold">आपकी प्रगति इस वीडियो पर</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard icon={<Trophy className="size-4" />} label="बेस्ट स्कोर" value={`${history.stats.best}%`} tone="success" />
+            <StatCard icon={<Target className="size-4" />} label="नवीनतम" value={`${history.stats.latest}%`} tone="primary" />
+            <StatCard icon={<TrendingUp className="size-4" />} label="औसत" value={`${history.stats.avg}%`} tone="muted" />
+            <StatCard
+              icon={history.stats.improvement > 0 ? <TrendingUp className="size-4" /> : history.stats.improvement < 0 ? <TrendingDown className="size-4" /> : <Minus className="size-4" />}
+              label="सुधार"
+              value={history.stats.improvement > 0 ? `+${history.stats.improvement}%` : `${history.stats.improvement}%`}
+              tone={history.stats.improvement > 0 ? "success" : history.stats.improvement < 0 ? "destructive" : "muted"}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Attempt history */}
+      {history && history.attempts.length > 1 && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <History className="size-4 text-primary" />
+            <h2 className="font-bold">सभी प्रयास ({history.attempts.length})</h2>
+          </div>
+          <div className="space-y-2">
+            {history.attempts.map((a) => {
+              const pct = Math.round((a.score / Math.max(a.total, 1)) * 100);
+              const isCurrent = a.id === attemptId;
+              return (
+                <Link
+                  key={a.id}
+                  to="/v/$id/results/$attemptId"
+                  params={{ id, attemptId: a.id }}
+                  className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition-colors ${
+                    isCurrent ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Badge variant="outline" className="shrink-0">v{a.quiz_version}</Badge>
+                    <div className="min-w-0">
+                      <p className="font-medium">{a.score}/{a.total} · {pct}%</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(a.completed_at).toLocaleString("hi-IN", { dateStyle: "medium", timeStyle: "short" })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1"><Clock className="size-3" />{formatDuration(a.time_taken_seconds ?? 0)}</span>
+                    {isCurrent && <Badge className="bg-primary text-primary-foreground">यह प्रयास</Badge>}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-3 justify-center pt-4">
-        <Link to="/v/$id" params={{ id }}>
-          <Button variant="outline" className="gap-2"><RotateCcw className="size-4" /> क्विज़ दोबारा दें</Button>
+        <Link to="/v/$id" params={{ id }} search={{ retake: 1 } as never}>
+          <Button variant="outline" className="gap-2"><RotateCcw className="size-4" /> फिर से अभ्यास करें</Button>
         </Link>
+        <Button
+          className="bg-hero hover:opacity-90 gap-2"
+          disabled={regenMut.isPending}
+          onClick={() => regenMut.mutate()}
+        >
+          {regenMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+          नया क्विज़ बनाएँ
+        </Button>
         <Link to="/dashboard">
-          <Button className="bg-hero hover:opacity-90">डैशबोर्ड पर जाएँ</Button>
+          <Button variant="ghost">डैशबोर्ड पर जाएँ</Button>
         </Link>
       </div>
     </div>

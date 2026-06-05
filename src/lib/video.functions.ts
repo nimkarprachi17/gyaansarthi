@@ -145,6 +145,17 @@ export const getDashboard = createServerFn({ method: "GET" })
       .slice(0, 5)
       .map(([k]) => k);
 
+    // Best score (highest %) and accuracy + trend across last 10 attempts (oldest→newest)
+    const pcts = (attempts ?? []).map((a) => Math.round((a.score / Math.max(a.total, 1)) * 100));
+    const bestScore = pcts.length ? Math.max(...pcts) : 0;
+    const trend = [...(attempts ?? [])]
+      .slice(0, 10)
+      .reverse()
+      .map((a) => ({
+        date: a.completed_at as unknown as string,
+        pct: Math.round((a.score / Math.max(a.total, 1)) * 100),
+      }));
+
     return {
       profile: profile ?? null,
       videos: videos ?? [],
@@ -152,8 +163,10 @@ export const getDashboard = createServerFn({ method: "GET" })
         totalVideos: videos?.length ?? 0,
         totalAttempts,
         avgScore,
+        bestScore,
         streak,
       },
+      trend,
       weakAreas,
       strongAreas,
     };
@@ -215,4 +228,65 @@ export const getAttempt = createServerFn({ method: "POST" })
     const { data: quiz } = await supabase.from("quizzes").select("questions").eq("id", attempt.quiz_id).maybeSingle();
     const { data: video } = await supabase.from("videos").select("id, title, youtube_id, language").eq("id", attempt.video_id).maybeSingle();
     return { attempt, questions: (quiz?.questions ?? []) as Array<{ question: string; options: string[]; correct_index: number; explanation: string; difficulty: string; concept: string }>, video };
+  });
+
+// ---------------- Attempt history for a video ----------------
+export const getAttemptHistory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ videoId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: attempts } = await supabase
+      .from("attempts")
+      .select("id, quiz_id, score, total, time_taken_seconds, completed_at")
+      .eq("user_id", userId)
+      .eq("video_id", data.videoId)
+      .order("completed_at", { ascending: false })
+      .limit(50);
+    const list = attempts ?? [];
+    const pcts = list.map((a) => Math.round((a.score / Math.max(a.total, 1)) * 100));
+    const best = pcts.length ? Math.max(...pcts) : 0;
+    const latest = pcts[0] ?? 0;
+    const previous = pcts[1];
+    const avg = pcts.length ? Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length) : 0;
+    const improvement = previous !== undefined ? latest - previous : 0;
+    // assign quiz version labels: oldest quiz_id is v1
+    const quizIds = Array.from(new Set([...list].reverse().map((a) => a.quiz_id)));
+    const versionMap: Record<string, number> = {};
+    quizIds.forEach((qid, i) => { versionMap[qid] = i + 1; });
+    const enriched = list.map((a) => ({ ...a, quiz_version: versionMap[a.quiz_id] ?? 1 }));
+    return { attempts: enriched, stats: { best, latest, avg, improvement, totalAttempts: list.length } };
+  });
+
+// ---------------- Regenerate quiz (fresh questions) ----------------
+export const regenerateQuiz = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ videoId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: video } = await supabase.from("videos").select("id, transcript, language, title").eq("id", data.videoId).maybeSingle();
+    if (!video || !video.transcript) throw new Error("NOT_FOUND");
+
+    // Collect all previous question texts to avoid repetition
+    const { data: prevQuizzes } = await supabase
+      .from("quizzes")
+      .select("questions")
+      .eq("video_id", data.videoId)
+      .eq("user_id", userId);
+    const avoid: string[] = [];
+    for (const q of prevQuizzes ?? []) {
+      const qs = (q.questions as Array<{ question: string }> | null) ?? [];
+      for (const item of qs) if (item?.question) avoid.push(item.question);
+    }
+
+    const { generateQuiz } = await import("@/lib/ai.server");
+    const questions = await generateQuiz(video.transcript, video.language as "hi" | "en", video.title ?? undefined, avoid);
+
+    const { data: inserted, error } = await supabase
+      .from("quizzes")
+      .insert({ video_id: video.id, user_id: userId, questions })
+      .select("id")
+      .single();
+    if (error || !inserted) throw new Error(error?.message ?? "Failed to save quiz");
+    return { id: inserted.id, count: questions.length };
   });

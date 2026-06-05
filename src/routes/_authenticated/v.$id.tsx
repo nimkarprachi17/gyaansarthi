@@ -14,6 +14,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/v/$id")({
   head: () => ({ meta: [{ title: "वीडियो — स्मार्टस्टडी AI" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ retake: s.retake === 1 || s.retake === "1" ? 1 : undefined }),
   component: VideoWorkspace,
 });
 
@@ -40,6 +41,8 @@ type QuizQuestion = {
 
 function VideoWorkspace() {
   const { id } = Route.useParams();
+  const search = Route.useSearch() as { retake?: 1 };
+  const retake = search.retake === 1;
   const isResultsRoute = useRouterState({
     select: (state) => state.location.pathname.includes(`/v/${id}/results/`),
   });
@@ -99,7 +102,7 @@ function VideoWorkspace() {
           <p className="text-sm text-muted-foreground">सामग्री तैयार हो रही है...</p>
         </div>
       ) : (
-        <Tabs defaultValue="notes" className="w-full">
+        <Tabs defaultValue={retake ? "quiz" : "notes"} className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-12">
             <TabsTrigger value="notes" className="gap-2 text-base"><BookOpen className="size-4" /> नोट्स</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-2 text-base"><ListChecks className="size-4" /> क्विज़</TabsTrigger>
@@ -108,7 +111,7 @@ function VideoWorkspace() {
             <NotesView notes={notesContent} />
           </TabsContent>
           <TabsContent value="quiz" className="mt-6">
-            <QuizView quizId={quiz!.id} videoId={video.id} questions={questions} />
+            <QuizView key={quiz!.id + (retake ? "-retake" : "")} quizId={quiz!.id} videoId={video.id} questions={questions} autoStart={retake} />
           </TabsContent>
         </Tabs>
       )}
@@ -224,9 +227,9 @@ function formatTime(s: number) {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 }
 
-function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: string; questions: QuizQuestion[] }) {
+function QuizView({ quizId, videoId, questions, autoStart = false }: { quizId: string; videoId: string; questions: QuizQuestion[]; autoStart?: boolean }) {
   const navigate = useNavigate();
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(autoStart);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() => questions.map(() => -1));
   const [elapsed, setElapsed] = useState(0);
