@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { getAttempt } from "@/lib/video.functions";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAttempt, getAttemptHistory, regenerateQuiz } from "@/lib/video.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   Trophy,
   CheckCircle2,
@@ -17,6 +18,10 @@ import {
   Clock,
   Timer,
   BookOpen,
+  Sparkles,
+  History,
+  Award,
+  Minus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/v/$id/results/$attemptId")({
