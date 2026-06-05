@@ -145,6 +145,17 @@ export const getDashboard = createServerFn({ method: "GET" })
       .slice(0, 5)
       .map(([k]) => k);
 
+    // Best score (highest %) and accuracy + trend across last 10 attempts (oldest→newest)
+    const pcts = (attempts ?? []).map((a) => Math.round((a.score / Math.max(a.total, 1)) * 100));
+    const bestScore = pcts.length ? Math.max(...pcts) : 0;
+    const trend = [...(attempts ?? [])]
+      .slice(0, 10)
+      .reverse()
+      .map((a) => ({
+        date: a.completed_at as unknown as string,
+        pct: Math.round((a.score / Math.max(a.total, 1)) * 100),
+      }));
+
     return {
       profile: profile ?? null,
       videos: videos ?? [],
@@ -152,8 +163,10 @@ export const getDashboard = createServerFn({ method: "GET" })
         totalVideos: videos?.length ?? 0,
         totalAttempts,
         avgScore,
+        bestScore,
         streak,
       },
+      trend,
       weakAreas,
       strongAreas,
     };
