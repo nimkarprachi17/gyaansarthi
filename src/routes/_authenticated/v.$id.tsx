@@ -227,9 +227,9 @@ function formatTime(s: number) {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 }
 
-function QuizView({ quizId, videoId, questions }: { quizId: string; videoId: string; questions: QuizQuestion[] }) {
+function QuizView({ quizId, videoId, questions, autoStart = false }: { quizId: string; videoId: string; questions: QuizQuestion[]; autoStart?: boolean }) {
   const navigate = useNavigate();
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(autoStart);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() => questions.map(() => -1));
   const [elapsed, setElapsed] = useState(0);
