@@ -55,11 +55,16 @@ export async function callAIJson<T = unknown>({
 // ---------------- NOTES ----------------
 
 export type CheatSheet = {
-  formulas: { name: string; expression: string; note?: string }[];
-  quick_concepts: string[];
-  exam_must_remember: string[];
+  formulas: { name: string; expression: string; when_to_use?: string; trap?: string }[];
+  most_important: string[];
+  frequently_asked: string[];
   common_mistakes: string[];
-  quick_tricks: string[];
+  memory_tricks: string[];
+  last_minute_points: string[];
+  // legacy fields kept optional for backward compatibility with older saved notes
+  quick_concepts?: string[];
+  exam_must_remember?: string[];
+  quick_tricks?: string[];
 };
 
 export type NotesContent = {
