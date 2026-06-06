@@ -19,10 +19,15 @@ export const Route = createFileRoute("/_authenticated/v/$id")({
 });
 
 type CheatSheet = {
-  formulas?: { name: string; expression: string; note?: string }[];
+  formulas?: { name: string; expression: string; when_to_use?: string; trap?: string; note?: string }[];
+  most_important?: string[];
+  frequently_asked?: string[];
+  common_mistakes?: string[];
+  memory_tricks?: string[];
+  last_minute_points?: string[];
+  // legacy
   quick_concepts?: string[];
   exam_must_remember?: string[];
-  common_mistakes?: string[];
   quick_tricks?: string[];
 };
 
@@ -272,13 +277,23 @@ function parseLegacyCheatSheet(text: string): CheatSheet {
 }
 
 function CheatSheetView({ data }: { data: CheatSheet | string }) {
-  const cs: CheatSheet = typeof data === "string" ? parseLegacyCheatSheet(data) : data;
+  const raw: CheatSheet = typeof data === "string" ? parseLegacyCheatSheet(data) : data;
+  // Merge legacy fields into new structure so older notes still render well
+  const cs: CheatSheet = {
+    ...raw,
+    most_important: raw.most_important?.length ? raw.most_important : raw.exam_must_remember,
+    frequently_asked: raw.frequently_asked,
+    memory_tricks: raw.memory_tricks?.length ? raw.memory_tricks : raw.quick_tricks,
+    last_minute_points: raw.last_minute_points?.length ? raw.last_minute_points : raw.quick_concepts,
+  };
+
   const hasAny =
     (cs.formulas?.length ?? 0) +
-      (cs.quick_concepts?.length ?? 0) +
-      (cs.exam_must_remember?.length ?? 0) +
+      (cs.most_important?.length ?? 0) +
+      (cs.frequently_asked?.length ?? 0) +
       (cs.common_mistakes?.length ?? 0) +
-      (cs.quick_tricks?.length ?? 0) >
+      (cs.memory_tricks?.length ?? 0) +
+      (cs.last_minute_points?.length ?? 0) >
     0;
   if (!hasAny) {
     return <p className="text-sm text-muted-foreground">कोई चीट शीट उपलब्ध नहीं है।</p>;
@@ -287,7 +302,7 @@ function CheatSheetView({ data }: { data: CheatSheet | string }) {
   return (
     <div className="space-y-5">
       {cs.formulas && cs.formulas.length > 0 && (
-        <CheatBlock label="मुख्य सूत्र" accent="primary">
+        <CheatBlock label="📐 मुख्य सूत्र" accent="primary">
           <div className="grid gap-2 sm:grid-cols-2">
             {cs.formulas.map((f, i) => (
               <div key={i} className="rounded-lg border bg-card p-3 shadow-sm">
@@ -297,34 +312,54 @@ function CheatSheetView({ data }: { data: CheatSheet | string }) {
                 <div className="font-mono text-base leading-snug break-words text-foreground">
                   {f.expression}
                 </div>
-                {f.note && <div className="mt-1 text-xs text-muted-foreground">{f.note}</div>}
+                {f.when_to_use && (
+                  <div className="mt-1.5 text-xs text-foreground/80">
+                    <span className="font-semibold text-primary">कब उपयोग करें: </span>
+                    {f.when_to_use}
+                  </div>
+                )}
+                {f.trap && (
+                  <div className="mt-1 text-xs text-destructive">
+                    <span className="font-semibold">⚠ ट्रैप: </span>
+                    {f.trap}
+                  </div>
+                )}
+                {f.note && !f.when_to_use && !f.trap && (
+                  <div className="mt-1 text-xs text-muted-foreground">{f.note}</div>
+                )}
               </div>
             ))}
           </div>
         </CheatBlock>
       )}
 
-      {cs.quick_concepts && cs.quick_concepts.length > 0 && (
-        <CheatBlock label="त्वरित अवधारणाएँ" accent="info">
-          <ChipList items={cs.quick_concepts} />
+      {cs.most_important && cs.most_important.length > 0 && (
+        <CheatBlock label="🔥 सबसे महत्वपूर्ण" accent="danger">
+          <BulletList items={cs.most_important} dotClass="bg-destructive" />
         </CheatBlock>
       )}
 
-      {cs.exam_must_remember && cs.exam_must_remember.length > 0 && (
-        <CheatBlock label="परीक्षा में याद रखने योग्य बातें" accent="success">
-          <BulletList items={cs.exam_must_remember} dotClass="bg-success" />
+      {cs.frequently_asked && cs.frequently_asked.length > 0 && (
+        <CheatBlock label="🎯 परीक्षा में अक्सर पूछे जाने वाले" accent="primary">
+          <BulletList items={cs.frequently_asked} dotClass="bg-primary" />
         </CheatBlock>
       )}
 
       {cs.common_mistakes && cs.common_mistakes.length > 0 && (
-        <CheatBlock label="सामान्य गलतियाँ" accent="danger">
+        <CheatBlock label="⚠️ सामान्य गलतियाँ" accent="warning">
           <BulletList items={cs.common_mistakes} dotClass="bg-destructive" />
         </CheatBlock>
       )}
 
-      {cs.quick_tricks && cs.quick_tricks.length > 0 && (
-        <CheatBlock label="त्वरित ट्रिक्स" accent="warning">
-          <BulletList items={cs.quick_tricks} dotClass="bg-accent-foreground/60" />
+      {cs.memory_tricks && cs.memory_tricks.length > 0 && (
+        <CheatBlock label="📝 याद रखने की ट्रिक्स" accent="info">
+          <BulletList items={cs.memory_tricks} dotClass="bg-accent-foreground/60" />
+        </CheatBlock>
+      )}
+
+      {cs.last_minute_points && cs.last_minute_points.length > 0 && (
+        <CheatBlock label="📌 लास्ट मिनट रिवीजन" accent="success">
+          <BulletList items={cs.last_minute_points} dotClass="bg-success" />
         </CheatBlock>
       )}
     </div>
