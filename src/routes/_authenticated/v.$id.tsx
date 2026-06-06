@@ -18,6 +18,14 @@ export const Route = createFileRoute("/_authenticated/v/$id")({
   component: VideoWorkspace,
 });
 
+type CheatSheet = {
+  formulas?: { name: string; expression: string; note?: string }[];
+  quick_concepts?: string[];
+  exam_must_remember?: string[];
+  common_mistakes?: string[];
+  quick_tricks?: string[];
+};
+
 type NotesContent = {
   summary: string;
   key_concepts: { title: string; description: string }[];
@@ -27,8 +35,9 @@ type NotesContent = {
   common_mistakes: string[];
   exam_points: string[];
   revision_notes: string[];
-  cheat_sheet: string;
+  cheat_sheet: CheatSheet | string;
 };
+
 
 type QuizQuestion = {
   question: string;
