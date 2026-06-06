@@ -54,6 +54,14 @@ export async function callAIJson<T = unknown>({
 
 // ---------------- NOTES ----------------
 
+export type CheatSheet = {
+  formulas: { name: string; expression: string; note?: string }[];
+  quick_concepts: string[];
+  exam_must_remember: string[];
+  common_mistakes: string[];
+  quick_tricks: string[];
+};
+
 export type NotesContent = {
   summary: string;
   key_concepts: { title: string; description: string }[];
@@ -63,8 +71,9 @@ export type NotesContent = {
   common_mistakes: string[];
   exam_points: string[];
   revision_notes: string[];
-  cheat_sheet: string;
+  cheat_sheet: CheatSheet;
 };
+
 
 export async function generateNotes(transcript: string, lang: Lang, title?: string): Promise<NotesContent> {
   const isHi = lang === "hi";
