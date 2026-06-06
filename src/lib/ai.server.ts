@@ -54,6 +54,14 @@ export async function callAIJson<T = unknown>({
 
 // ---------------- NOTES ----------------
 
+export type CheatSheet = {
+  formulas: { name: string; expression: string; note?: string }[];
+  quick_concepts: string[];
+  exam_must_remember: string[];
+  common_mistakes: string[];
+  quick_tricks: string[];
+};
+
 export type NotesContent = {
   summary: string;
   key_concepts: { title: string; description: string }[];
@@ -63,8 +71,9 @@ export type NotesContent = {
   common_mistakes: string[];
   exam_points: string[];
   revision_notes: string[];
-  cheat_sheet: string;
+  cheat_sheet: CheatSheet;
 };
+
 
 export async function generateNotes(transcript: string, lang: Lang, title?: string): Promise<NotesContent> {
   const isHi = lang === "hi";
@@ -88,8 +97,17 @@ Rules:
   "common_mistakes": string[],                        // misconceptions
   "exam_points": string[],                            // exam-important bullets
   "revision_notes": string[],                         // quick revision bullets
-  "cheat_sheet": string                               // condensed one-page summary (markdown allowed)
-}`;
+  "cheat_sheet": {
+    "formulas": [{"name": string, "expression": string, "note"?: string}],   // 0-8 key formulas. expression MUST be plain text/unicode (e.g. "F = m·a", "v² = u² + 2as"). NEVER use LaTeX, $...$, \\frac, \\sqrt, or markdown. Leave empty array [] for pure theory subjects.
+    "quick_concepts": string[],          // 4-8 one-line concept summaries, plain text
+    "exam_must_remember": string[],      // 4-8 high-yield revision points, plain text
+    "common_mistakes": string[],         // 3-6 short common-mistake warnings, plain text
+    "quick_tricks": string[]             // 3-6 memory aids / shortcuts, plain text
+  }
+}
+
+CRITICAL: All cheat_sheet strings MUST be plain text. NO markdown (no **, _, #, \`, -, *), NO LaTeX ($, \\frac, etc.), NO HTML. Use unicode symbols directly (×, ÷, ², ³, √, π, →, ≈, ≤, ≥). Keep each bullet under 120 characters.`;
+
 
   const user = `${title ? `Video title: ${title}\n\n` : ""}Transcript:\n"""\n${transcript.slice(0, 60000)}\n"""\n\nGenerate the study notes JSON now.`;
 

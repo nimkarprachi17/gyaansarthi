@@ -18,6 +18,14 @@ export const Route = createFileRoute("/_authenticated/v/$id")({
   component: VideoWorkspace,
 });
 
+type CheatSheet = {
+  formulas?: { name: string; expression: string; note?: string }[];
+  quick_concepts?: string[];
+  exam_must_remember?: string[];
+  common_mistakes?: string[];
+  quick_tricks?: string[];
+};
+
 type NotesContent = {
   summary: string;
   key_concepts: { title: string; description: string }[];
@@ -27,8 +35,9 @@ type NotesContent = {
   common_mistakes: string[];
   exam_points: string[];
   revision_notes: string[];
-  cheat_sheet: string;
+  cheat_sheet: CheatSheet | string;
 };
+
 
 type QuizQuestion = {
   question: string;
@@ -214,12 +223,159 @@ function NotesView({ notes }: { notes: NotesContent }) {
 
       {notes.cheat_sheet && (
         <Section title="एक-पृष्ठीय चीट शीट">
-          <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans bg-accent/40 p-4 rounded-lg">{notes.cheat_sheet}</pre>
+          <CheatSheetView data={notes.cheat_sheet} />
         </Section>
+      )}
+
+    </div>
+  );
+}
+
+// Strip markdown / LaTeX artifacts from legacy string cheat sheets.
+function cleanLine(s: string): string {
+  return s
+    .replace(/\$\$?([^$]+)\$\$?/g, "$1")
+    .replace(/\\frac\s*\{([^}]*)\}\s*\{([^}]*)\}/g, "($1)/($2)")
+    .replace(/\\sqrt\s*\{([^}]*)\}/g, "√($1)")
+    .replace(/\\(times|cdot)/g, "×")
+    .replace(/\\div/g, "÷")
+    .replace(/\\pi/g, "π")
+    .replace(/\\(left|right)/g, "")
+    .replace(/\\[a-zA-Z]+/g, "")
+    .replace(/[*_`#>]+/g, "")
+    .replace(/^\s*[-•]\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseLegacyCheatSheet(text: string): CheatSheet {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const bullets: string[] = [];
+  const formulas: { name: string; expression: string }[] = [];
+  for (const raw of lines) {
+    const line = cleanLine(raw);
+    if (!line) continue;
+    if (/^#+\s/.test(raw)) continue;
+    // Heuristic: treat lines containing "=" as formulas
+    if (/=/.test(line) && line.length < 80) {
+      const [name, ...rest] = line.split(":");
+      if (rest.length && /=/.test(rest.join(":"))) {
+        formulas.push({ name: name.trim(), expression: rest.join(":").trim() });
+      } else {
+        formulas.push({ name: "", expression: line });
+      }
+    } else {
+      bullets.push(line);
+    }
+  }
+  return { formulas, quick_concepts: bullets, exam_must_remember: [], common_mistakes: [], quick_tricks: [] };
+}
+
+function CheatSheetView({ data }: { data: CheatSheet | string }) {
+  const cs: CheatSheet = typeof data === "string" ? parseLegacyCheatSheet(data) : data;
+  const hasAny =
+    (cs.formulas?.length ?? 0) +
+      (cs.quick_concepts?.length ?? 0) +
+      (cs.exam_must_remember?.length ?? 0) +
+      (cs.common_mistakes?.length ?? 0) +
+      (cs.quick_tricks?.length ?? 0) >
+    0;
+  if (!hasAny) {
+    return <p className="text-sm text-muted-foreground">कोई चीट शीट उपलब्ध नहीं है।</p>;
+  }
+
+  return (
+    <div className="space-y-5">
+      {cs.formulas && cs.formulas.length > 0 && (
+        <CheatBlock label="मुख्य सूत्र" accent="primary">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {cs.formulas.map((f, i) => (
+              <div key={i} className="rounded-lg border bg-card p-3 shadow-sm">
+                {f.name && (
+                  <div className="text-xs font-medium text-muted-foreground mb-1">{f.name}</div>
+                )}
+                <div className="font-mono text-base leading-snug break-words text-foreground">
+                  {f.expression}
+                </div>
+                {f.note && <div className="mt-1 text-xs text-muted-foreground">{f.note}</div>}
+              </div>
+            ))}
+          </div>
+        </CheatBlock>
+      )}
+
+      {cs.quick_concepts && cs.quick_concepts.length > 0 && (
+        <CheatBlock label="त्वरित अवधारणाएँ" accent="info">
+          <ChipList items={cs.quick_concepts} />
+        </CheatBlock>
+      )}
+
+      {cs.exam_must_remember && cs.exam_must_remember.length > 0 && (
+        <CheatBlock label="परीक्षा में याद रखने योग्य बातें" accent="success">
+          <BulletList items={cs.exam_must_remember} dotClass="bg-success" />
+        </CheatBlock>
+      )}
+
+      {cs.common_mistakes && cs.common_mistakes.length > 0 && (
+        <CheatBlock label="सामान्य गलतियाँ" accent="danger">
+          <BulletList items={cs.common_mistakes} dotClass="bg-destructive" />
+        </CheatBlock>
+      )}
+
+      {cs.quick_tricks && cs.quick_tricks.length > 0 && (
+        <CheatBlock label="त्वरित ट्रिक्स" accent="warning">
+          <BulletList items={cs.quick_tricks} dotClass="bg-accent-foreground/60" />
+        </CheatBlock>
       )}
     </div>
   );
 }
+
+function CheatBlock({ label, accent, children }: { label: string; accent: "primary" | "info" | "success" | "danger" | "warning"; children: React.ReactNode }) {
+  const badgeClass: Record<string, string> = {
+    primary: "bg-primary/10 text-primary border-primary/20",
+    info: "bg-accent text-accent-foreground border-accent",
+    success: "bg-success/10 text-success border-success/20",
+    danger: "bg-destructive/10 text-destructive border-destructive/20",
+    warning: "bg-secondary text-secondary-foreground border-secondary",
+  };
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-2">
+        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeClass[accent]}`}>
+          {label}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function BulletList({ items, dotClass }: { items: string[]; dotClass: string }) {
+  return (
+    <ul className="space-y-1.5 text-sm">
+      {items.map((t, i) => (
+        <li key={i} className="flex gap-2">
+          <span className={`mt-1.5 size-1.5 rounded-full shrink-0 ${dotClass}`} />
+          <span className="leading-relaxed">{t}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ChipList({ items }: { items: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((t, i) => (
+        <span key={i} className="rounded-md border bg-card px-2 py-1 text-xs leading-snug">
+          {t}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
