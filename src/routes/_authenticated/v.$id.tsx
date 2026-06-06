@@ -19,10 +19,15 @@ export const Route = createFileRoute("/_authenticated/v/$id")({
 });
 
 type CheatSheet = {
-  formulas?: { name: string; expression: string; note?: string }[];
+  formulas?: { name: string; expression: string; when_to_use?: string; trap?: string; note?: string }[];
+  most_important?: string[];
+  frequently_asked?: string[];
+  common_mistakes?: string[];
+  memory_tricks?: string[];
+  last_minute_points?: string[];
+  // legacy
   quick_concepts?: string[];
   exam_must_remember?: string[];
-  common_mistakes?: string[];
   quick_tricks?: string[];
 };
 
