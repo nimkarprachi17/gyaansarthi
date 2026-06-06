@@ -223,9 +223,10 @@ function NotesView({ notes }: { notes: NotesContent }) {
 
       {notes.cheat_sheet && (
         <Section title="एक-पृष्ठीय चीट शीट">
-          <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans bg-accent/40 p-4 rounded-lg">{notes.cheat_sheet}</pre>
+          <CheatSheetView data={notes.cheat_sheet} />
         </Section>
       )}
+
     </div>
   );
 }
