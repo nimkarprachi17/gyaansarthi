@@ -67,10 +67,21 @@ export type CheatSheet = {
   quick_tricks?: string[];
 };
 
+export type DetailedNote = {
+  heading: string;
+  concept: string;
+  explanation: string;
+  why_it_matters: string;
+  exam_relevance: string;
+  example?: string;
+  // legacy
+  body?: string;
+};
+
 export type NotesContent = {
   summary: string;
   key_concepts: { title: string; description: string }[];
-  detailed_notes: { heading: string; body: string }[];
+  detailed_notes: DetailedNote[];
   definitions: { term: string; meaning: string }[];
   examples: string[];
   common_mistakes: string[];
@@ -86,41 +97,55 @@ export async function generateNotes(transcript: string, lang: Lang, title?: stri
     ? `IMPORTANT: सभी आउटपुट सरल, स्वाभाविक हिंदी में लिखें। तकनीकी शब्दों (जैसे Array, Database, Stack) को अंग्रेज़ी में रखें और कोष्ठक में हिंदी अर्थ दें। कठिन संस्कृत-निष्ठ शब्दों से बचें।`
     : `IMPORTANT: Write all output in clear, professional English suitable for exam preparation.`;
 
-  const system = `You are an expert educator creating premium study notes from a video transcript. ${langInstruction}
+  const system = `You are a top coaching-class teacher creating premium, exam-oriented study notes from a video transcript. ${langInstruction}
 
 Rules:
 - Stay faithful to the transcript. NEVER invent facts not in the transcript.
-- If a topic is unclear in the transcript, say so honestly instead of guessing.
-- Use exam-oriented structure. Be concise but complete.
+- If a topic is unclear, say so honestly instead of guessing.
+- These are COACHING-CLASS NOTES, not transcript compression. Re-organize the content topic-wise — do NOT follow the speaker's order.
 - Return ONLY valid JSON matching this schema (no markdown, no commentary):
 {
   "summary": string,                                  // 3-5 sentence overview
   "key_concepts": [{"title": string, "description": string}],   // 5-10 items
-  "detailed_notes": [{"heading": string, "body": string}],      // 4-8 sections, body can use \\n for line breaks
-  "definitions": [{"term": string, "meaning": string}],         // important terms
-  "examples": string[],                               // examples discussed
-  "common_mistakes": string[],                        // misconceptions
-  "exam_points": string[],                            // exam-important bullets
-  "revision_notes": string[],                         // quick revision bullets
+  "detailed_notes": [                                 // 4-8 TOPIC-WISE sections, one per real topic
+    {
+      "heading": string,            // sharp topic title, exam-style (e.g. "Newton's Second Law", not "What the teacher said next")
+      "concept": string,            // 1 crisp line stating WHAT the concept is
+      "explanation": string,        // 2-5 short lines explaining HOW it works. Use \\n between lines. NO long paragraphs.
+      "why_it_matters": string,     // 1-2 lines — why a student should care, real-world significance
+      "exam_relevance": string,     // 1-2 lines — how this is tested (MCQ trap, common question pattern, weightage)
+      "example": string             // optional — a concrete worked example or scenario. Omit field if not applicable.
+    }
+  ],
+  "definitions": [{"term": string, "meaning": string}],
+  "examples": string[],
+  "common_mistakes": string[],
+  "exam_points": string[],
+  "revision_notes": string[],
   "cheat_sheet": {
-    "formulas": [{"name": string, "expression": string, "when_to_use"?: string, "trap"?: string}],   // 0-6 HIGH-YIELD formulas only. expression MUST be plain text/unicode (e.g. "F = m·a", "v² = u² + 2as"). NEVER LaTeX/$/\\frac/\\sqrt/markdown. "when_to_use" = one short phrase telling the student WHEN to apply it. "trap" = the common mistake/pitfall examiners exploit. Empty [] for pure theory subjects.
-    "most_important": string[],        // 4-7 highest-yield facts/ideas a student MUST know — the things most likely to be tested. Sharp, exam-keyword-rich. Not a summary.
-    "frequently_asked": string[],      // 4-7 specific points/question-angles known to appear repeatedly in exams (PYQ patterns, classic questions, definitions examiners love).
-    "common_mistakes": string[],       // 3-6 specific traps students fall for. Phrase as "X is NOT Y" or "don't confuse A with B".
-    "memory_tricks": string[],         // 3-6 mnemonics, acronyms, analogies, or shortcuts to recall facts under exam pressure.
-    "last_minute_points": string[]     // 4-7 ultra-condensed punch-line facts to scan in the final 60 seconds before the exam.
+    "formulas": [{"name": string, "expression": string, "when_to_use"?: string, "trap"?: string}],
+    "most_important": string[],
+    "frequently_asked": string[],
+    "common_mistakes": string[],
+    "memory_tricks": string[],
+    "last_minute_points": string[]
   }
 }
 
+CRITICAL DETAILED NOTES RULES — this is the most important section:
+- Each item is a STANDALONE topic, organized like coaching-class notes. NOT a transcript chunk.
+- "concept" = one-line "what it is". "explanation" = compact step-by-step or bullet-style reasoning (use \\n, keep each line short — ideally under 120 chars).
+- "why_it_matters" must be specific (e.g. "Foundation of all dynamics — every motion problem reduces to F = ma"), NOT generic AI filler like "important to understand".
+- "exam_relevance" must be concrete (e.g. "Frequently asked as numerical MCQ; examiners trap students by giving weight instead of mass").
+- "example" is a worked mini-example or scenario when applicable; OMIT the field entirely for pure-theory topics where no example fits.
+- BAN: long flowing paragraphs, transcript-style narration ("the speaker then explains…"), generic phrases ("this is a very important topic", "let us understand", "in conclusion"), filler.
+- Plain text only. No markdown (**, _, #, \`), no LaTeX. Use unicode (×, ÷, ², √, π, →, ≤, ≥) directly.
+
 CRITICAL CHEAT SHEET RULES — this is NOT a summary of the notes:
-- Answer the question: "What should a student remember 5 MINUTES BEFORE THE EXAM?"
-- Prioritize HIGH-YIELD, frequently tested, exam-oriented content only. Skip background, history, derivations, and anything not directly testable.
-- The cheat sheet must be readable in 2–3 minutes. Be ruthless — cut everything non-essential.
-- Do NOT mini-summarize the notes. Pick only what wins marks.
-- Every bullet must be sharp, specific, and exam-keyword rich. NO vague phrases like "important concept" or "remember the basics".
-- For formula-heavy subjects: include formulas with "when_to_use" + "trap". For theory subjects: leave formulas as [] and lean on most_important / frequently_asked / memory_tricks.
-- Highlight comparisons and edge cases inside most_important or frequently_asked when relevant (e.g. "X vs Y: X is …, Y is …").
-- All strings MUST be plain text. NO markdown (**, _, #, \`, -, *), NO LaTeX ($, \\frac, etc.), NO HTML, NO emoji inside bullets. Use unicode symbols directly (×, ÷, ², ³, √, π, →, ≈, ≤, ≥). Keep each bullet under 140 characters.`;
+- Answer: "What should a student remember 5 MINUTES BEFORE THE EXAM?" — high-yield, frequently tested, exam-keyword rich.
+- Readable in 2-3 minutes. Cut everything non-essential.
+- For formula-heavy subjects: include formulas with "when_to_use" + "trap". For theory subjects: leave formulas as [].
+- All strings plain text, NO markdown/LaTeX/emoji. Each bullet under 140 chars.`;
 
 
   const user = `${title ? `Video title: ${title}\n\n` : ""}Transcript:\n"""\n${transcript.slice(0, 60000)}\n"""\n\nGenerate the study notes JSON now.`;
