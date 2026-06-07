@@ -61,15 +61,16 @@ function VideoWorkspace() {
     select: (state) => state.location.pathname.includes(`/v/${id}/results/`),
   });
 
-  if (isResultsRoute) {
-    return <Outlet />;
-  }
-
   const fetcher = useServerFn(getVideoBundle);
   const { data, isLoading } = useQuery({
     queryKey: ["video", id],
     queryFn: () => fetcher({ data: { id } }),
+    enabled: !isResultsRoute,
   });
+
+  if (isResultsRoute) {
+    return <Outlet />;
+  }
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground"><Loader2 className="size-5 animate-spin mr-2" />लोड हो रहा है...</div>;
