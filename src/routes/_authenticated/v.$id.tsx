@@ -177,13 +177,54 @@ function NotesView({ notes }: { notes: NotesContent }) {
 
       {notes.detailed_notes?.length > 0 && (
         <Section title="विस्तृत नोट्स">
-          <div className="space-y-5">
-            {notes.detailed_notes.map((n, i) => (
-              <article key={i}>
-                <h4 className="font-semibold text-lg mb-2 text-ink">{n.heading}</h4>
-                <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-line">{n.body}</p>
-              </article>
-            ))}
+          <div className="space-y-6">
+            {notes.detailed_notes.map((n, i) => {
+              const structured = n.concept || n.explanation || n.why_it_matters || n.exam_relevance || n.example;
+              return (
+                <article key={i} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="size-7 shrink-0 rounded-lg bg-primary/10 text-primary grid place-items-center text-xs font-bold">{i + 1}</div>
+                    <h4 className="font-semibold text-lg text-ink leading-snug">{n.heading}</h4>
+                  </div>
+                  {structured ? (
+                    <div className="space-y-3 pl-10">
+                      {n.concept && (
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">अवधारणा</div>
+                          <p className="text-sm font-medium text-foreground leading-relaxed">{n.concept}</p>
+                        </div>
+                      )}
+                      {n.explanation && (
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">व्याख्या</div>
+                          <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-line">{n.explanation}</p>
+                        </div>
+                      )}
+                      {n.why_it_matters && (
+                        <div className="rounded-lg bg-accent/40 border border-accent px-3 py-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-accent-foreground/70 mb-1">क्यों ज़रूरी है</div>
+                          <p className="text-sm text-foreground leading-relaxed">{n.why_it_matters}</p>
+                        </div>
+                      )}
+                      {n.exam_relevance && (
+                        <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">परीक्षा में महत्व</div>
+                          <p className="text-sm text-foreground leading-relaxed">{n.exam_relevance}</p>
+                        </div>
+                      )}
+                      {n.example && (
+                        <div className="rounded-lg bg-success/10 border border-success/30 px-3 py-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-success mb-1">उदाहरण</div>
+                          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{n.example}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="pl-10 text-sm leading-relaxed text-foreground/85 whitespace-pre-line">{n.body}</p>
+                  )}
+                </article>
+              );
+            })}
           </div>
         </Section>
       )}
