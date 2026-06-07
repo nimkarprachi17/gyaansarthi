@@ -31,10 +31,20 @@ type CheatSheet = {
   quick_tricks?: string[];
 };
 
+type DetailedNote = {
+  heading: string;
+  concept?: string;
+  explanation?: string;
+  why_it_matters?: string;
+  exam_relevance?: string;
+  example?: string;
+  body?: string; // legacy
+};
+
 type NotesContent = {
   summary: string;
   key_concepts: { title: string; description: string }[];
-  detailed_notes: { heading: string; body: string }[];
+  detailed_notes: DetailedNote[];
   definitions: { term: string; meaning: string }[];
   examples: string[];
   common_mistakes: string[];
