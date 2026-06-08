@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/v/$id/results/$attemptId")({
-  head: () => ({ meta: [{ title: "परिणाम — स्मार्टस्टडी AI" }] }),
+  head: () => ({ meta: [{ title: "परिणाम — ज्ञानसारथी AI" }] }),
   component: Results,
 });
 

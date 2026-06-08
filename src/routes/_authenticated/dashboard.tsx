@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "डैशबोर्ड — स्मार्टस्टडी AI" }] }),
+  head: () => ({ meta: [{ title: "डैशबोर्ड — ज्ञानसारथी AI" }] }),
   component: Dashboard,
 });
 

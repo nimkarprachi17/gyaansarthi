@@ -31,7 +31,8 @@ function AuthenticatedLayout() {
             <div className="size-8 rounded-lg bg-hero grid place-items-center">
               <Sparkles className="size-4 text-primary-foreground" />
             </div>
-            <span className="font-bold tracking-tight hidden sm:inline">स्मार्टस्टडी <span className="text-primary">AI</span></span>
+            <span className="font-bold tracking-tight hidden sm:inline">ज्ञानसारथी <span className="text-primary">AI</span></span>
+            <span className="ml-1 hidden sm:inline-flex items-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold px-1.5 py-0.5 uppercase tracking-wider">Beta</span>
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link to="/dashboard">

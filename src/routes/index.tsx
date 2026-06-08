@@ -1,16 +1,57 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, BookOpen, Brain, Trophy, Youtube, Zap } from "lucide-react";
+import {
+  Sparkles,
+  BookOpen,
+  Brain,
+  Trophy,
+  Youtube,
+  Zap,
+  FileText,
+  ClipboardList,
+  BarChart3,
+  GraduationCap,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "स्मार्टस्टडी AI — YouTube वीडियो से प्रीमियम हिंदी नोट्स" },
-      { name: "description", content: "किसी भी YouTube एजुकेशनल वीडियो को पेस्ट करें और तुरंत हिंदी में विस्तृत नोट्स, मुख्य अवधारणाएँ, और परीक्षा-स्तर के MCQ प्राप्त करें।" },
+      { title: "ज्ञानसारथी AI — YouTube से नोट्स, MCQ और परीक्षा-तैयारी" },
+      {
+        name: "description",
+        content:
+          "किसी भी शैक्षणिक YouTube वीडियो को विस्तृत नोट्स, परीक्षा-स्तर के MCQ, विस्तृत समाधान और व्यक्तिगत अध्ययन विश्लेषण में बदलें।",
+      },
+      { property: "og:title", content: "ज्ञानसारथी AI — YouTube से नोट्स और MCQ" },
+      {
+        property: "og:description",
+        content:
+          "किसी भी शैक्षणिक YouTube वीडियो को विस्तृत नोट्स, परीक्षा-स्तर के MCQ और व्यक्तिगत अध्ययन विश्लेषण में बदलें।",
+      },
     ],
   }),
   component: Landing,
 });
+
+const features = [
+  { icon: FileText, title: "AI-निर्मित नोट्स", desc: "कोचिंग-स्तर के टॉपिक-वाइज़ नोट्स — सारांश, अवधारणाएँ, उदाहरण।" },
+  { icon: Brain, title: "परीक्षा-स्तर के MCQ", desc: "रट्टा नहीं — एप्लीकेशन और परिदृश्य पर आधारित 10+ कठिन प्रश्न।" },
+  { icon: ClipboardList, title: "विस्तृत समाधान", desc: "हर प्रश्न के लिए विस्तृत व्याख्या — क्यों सही, क्यों गलत।" },
+  { icon: BarChart3, title: "प्रगति ट्रैकिंग", desc: "कमजोर और मजबूत विषयों का व्यक्तिगत विश्लेषण।" },
+  { icon: Zap, title: "स्मार्ट चीट शीट", desc: "5 मिनट में रिवीज़न के लिए हाई-यील्ड पॉइंट्स।" },
+  { icon: BookOpen, title: "हिंदी + English", desc: "दोनों भाषाओं में पूर्ण समर्थन।" },
+];
+
+const audience = ["CTET", "UPSC", "JEE", "Engineering", "CA", "Competitive Exams"];
+
+const steps = [
+  { n: "1", t: "YouTube लिंक पेस्ट करें", d: "किसी भी शैक्षणिक वीडियो का URL।" },
+  { n: "2", t: "नोट्स प्राप्त करें", d: "AI टॉपिक-वाइज़ नोट्स तैयार करता है।" },
+  { n: "3", t: "क्विज़ हल करें", d: "परीक्षा-स्तर के MCQ का अभ्यास।" },
+  { n: "4", t: "परिणाम देखें", d: "विस्तृत समाधान + विश्लेषण।" },
+  { n: "5", t: "बेहतर सीखें", d: "कमजोर विषयों पर ध्यान केंद्रित करें।" },
+];
 
 function Landing() {
   return (
@@ -22,11 +63,20 @@ function Landing() {
             <div className="size-9 rounded-lg bg-hero shadow-soft grid place-items-center">
               <Sparkles className="size-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg tracking-tight">स्मार्टस्टडी <span className="text-primary">AI</span></span>
+            <span className="font-bold text-lg tracking-tight">
+              ज्ञानसारथी <span className="text-primary">AI</span>
+            </span>
+            <span className="ml-1 inline-flex items-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold px-1.5 py-0.5 uppercase tracking-wider">
+              Beta
+            </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link to="/auth"><Button variant="ghost" size="sm">साइन इन</Button></Link>
-            <Link to="/auth"><Button size="sm" className="bg-primary hover:bg-primary/90">शुरू करें</Button></Link>
+            <Link to="/auth">
+              <Button variant="ghost" size="sm">साइन इन</Button>
+            </Link>
+            <Link to="/auth">
+              <Button size="sm" className="bg-primary hover:bg-primary/90">शुरू करें</Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -34,42 +84,64 @@ function Landing() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-hero opacity-[0.06]" aria-hidden />
-        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 py-20 sm:py-28 text-center">
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 py-20 sm:py-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground mb-6 shadow-soft">
-            <Zap className="size-3.5 text-saffron" />
-            हिंदी और English — दोनों के लिए
+            <GraduationCap className="size-3.5 text-saffron" />
+            छात्रों के लिए — हिंदी और English दोनों में
           </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-balance leading-[1.05]">
-            YouTube वीडियो को
-            <span className="block bg-hero bg-clip-text text-transparent">परीक्षा-स्तर के नोट्स</span>
-            में बदलें
+            <span className="bg-hero bg-clip-text text-transparent">ज्ञानसारथी AI</span>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-            कोई भी एजुकेशनल वीडियो URL पेस्ट करें — AI तुरंत विस्तृत नोट्स, मुख्य अवधारणाएँ, चीट शीट और 12 कठिन MCQ तैयार करेगा।
+          <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed">
+            किसी भी शैक्षणिक YouTube वीडियो को विस्तृत नोट्स, परीक्षा-स्तर के MCQ, विस्तृत समाधान और व्यक्तिगत अध्ययन विश्लेषण में बदलें।
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link to="/auth">
-              <Button size="lg" className="bg-hero hover:opacity-90 text-primary-foreground shadow-elegant h-12 px-6 text-base">
-                मुफ़्त में शुरू करें
+              <Button size="lg" className="bg-hero hover:opacity-90 text-primary-foreground shadow-elegant h-12 px-7 text-base">
+                अभी शुरू करें
               </Button>
             </Link>
+            <a href="#how">
+              <Button size="lg" variant="outline" className="h-12 px-7 text-base">
+                डेमो देखें
+              </Button>
+            </a>
+          </div>
+
+          {/* Audience pills */}
+          <div className="mt-10 flex flex-wrap justify-center gap-2">
+            {audience.map((a) => (
+              <span
+                key={a}
+                className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
+              >
+                {a}
+              </span>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* Why choose */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
-        <div className="grid sm:grid-cols-3 gap-6">
-          {[
-            { icon: BookOpen, title: "प्रीमियम नोट्स", desc: "सारांश, मुख्य अवधारणाएँ, परिभाषाएँ, उदाहरण और एक-पृष्ठीय चीट शीट — कोचिंग संस्थान-स्तर के।" },
-            { icon: Brain, title: "कठिन MCQ", desc: "रट्टा नहीं — एप्लीकेशन-आधारित, परिदृश्य-आधारित और परीक्षा-स्तर के 12 प्रश्न।" },
-            { icon: Trophy, title: "विश्लेषण", desc: "हर प्रयास पर कमजोर और मजबूत विषयों की रिपोर्ट और लगातार दिन का streak।" },
-          ].map((f, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card-gradient p-6 shadow-soft">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            क्यों चुनें <span className="text-primary">ज्ञानसारथी AI</span>
+          </h2>
+          <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+            एक प्लेटफ़ॉर्म पर वो सब कुछ जो परीक्षा की तैयारी के लिए चाहिए।
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border bg-card-gradient p-6 shadow-soft hover:shadow-elegant hover:border-primary/30 transition-all"
+            >
               <div className="size-11 rounded-xl bg-primary/10 grid place-items-center mb-4">
                 <f.icon className="size-5 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-1">{f.title}</h3>
+              <h3 className="font-semibold text-base mb-1.5">{f.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
             </div>
           ))}
@@ -77,22 +149,43 @@ function Landing() {
       </section>
 
       {/* How it works */}
-      <section className="mx-auto max-w-5xl px-4 sm:px-6 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">कैसे काम करता है</h2>
-        <div className="grid sm:grid-cols-3 gap-6">
-          {[
-            { n: "1", t: "URL पेस्ट करें", d: "किसी भी YouTube एजुकेशनल वीडियो का URL डालें।" },
-            { n: "2", t: "AI प्रोसेस करता है", d: "ट्रांसक्रिप्ट से नोट्स और 12 MCQ तैयार किए जाते हैं।" },
-            { n: "3", t: "पढ़ें और परखें", d: "नोट्स पढ़ें, क्विज़ दें, और तुरंत विस्तृत समाधान देखें।" },
-          ].map((s, i) => (
-            <div key={i} className="relative rounded-2xl border border-border bg-card p-6">
-              <div className="absolute -top-4 -left-4 size-12 rounded-full bg-hero text-primary-foreground grid place-items-center font-bold text-lg shadow-elegant">
+      <section id="how" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 scroll-mt-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">कैसे काम करता है</h2>
+          <p className="mt-3 text-muted-foreground">सिर्फ़ 5 आसान कदम।</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {steps.map((s) => (
+            <div key={s.n} className="relative rounded-2xl border border-border bg-card p-5">
+              <div className="size-10 rounded-full bg-hero text-primary-foreground grid place-items-center font-bold text-base shadow-elegant mb-3">
                 {s.n}
               </div>
-              <h3 className="font-semibold mt-4 mb-2">{s.t}</h3>
-              <p className="text-sm text-muted-foreground">{s.d}</p>
+              <h3 className="font-semibold text-sm mb-1.5">{s.t}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">{s.d}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Trust strip */}
+      <section className="mx-auto max-w-4xl px-4 sm:px-6 py-12">
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-start gap-4">
+            <div className="size-10 rounded-xl bg-primary/10 grid place-items-center shrink-0">
+              <CheckCircle2 className="size-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold mb-1">
+                <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold px-1.5 py-0.5 uppercase tracking-wider mr-2 align-middle">
+                  Beta
+                </span>
+                सक्रिय रूप से विकसित किया जा रहा है
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                ज्ञानसारथी AI लगातार बेहतर बनाया जा रहा है। आपके सुझाव स्वागत योग्य हैं।
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -100,9 +193,11 @@ function Landing() {
       <section className="mx-auto max-w-4xl px-4 sm:px-6 py-20">
         <div className="rounded-3xl bg-hero p-10 sm:p-14 text-center shadow-elegant">
           <Youtube className="size-12 text-primary-foreground/90 mx-auto mb-4" />
-          <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground mb-3">अभी से बेहतर पढ़ाई शुरू करें</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground mb-3">
+            अभी से बेहतर पढ़ाई शुरू करें
+          </h2>
           <p className="text-primary-foreground/80 max-w-xl mx-auto mb-8">
-            एक खाता बनाएँ और आज ही पहला वीडियो प्रोसेस करें।
+            एक खाता बनाएँ और आज ही पहला वीडियो प्रोसेस करें — पूरी तरह मुफ़्त।
           </p>
           <Link to="/auth">
             <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-semibold">
@@ -113,7 +208,14 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        स्मार्टस्टडी AI · हिंदी-फर्स्ट लर्निंग
+        <div className="flex items-center justify-center gap-2">
+          <span>© ज्ञानसारथी AI</span>
+          <span>·</span>
+          <span>हिंदी-फर्स्ट लर्निंग</span>
+          <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold px-1.5 py-0.5 uppercase tracking-wider">
+            Beta
+          </span>
+        </div>
       </footer>
     </div>
   );

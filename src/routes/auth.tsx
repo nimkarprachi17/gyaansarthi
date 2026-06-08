@@ -9,7 +9,7 @@ import { Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "साइन इन — स्मार्टस्टडी AI" }, { name: "description", content: "स्मार्टस्टडी AI में साइन इन करें या नया खाता बनाएँ।" }] }),
+  head: () => ({ meta: [{ title: "साइन इन — ज्ञानसारथी AI" }, { name: "description", content: "ज्ञानसारथी AI में साइन इन करें या नया खाता बनाएँ।" }] }),
   component: AuthPage,
 });
 
@@ -79,7 +79,8 @@ function AuthPage() {
           <div className="size-9 rounded-lg bg-white/15 grid place-items-center backdrop-blur">
             <Sparkles className="size-5" />
           </div>
-          <span className="font-bold text-lg">स्मार्टस्टडी AI</span>
+          <span className="font-bold text-lg">ज्ञानसारथी AI</span>
+          <span className="ml-1 inline-flex items-center rounded-full bg-white/20 text-[10px] font-semibold px-1.5 py-0.5 uppercase tracking-wider">Beta</span>
         </Link>
         <div className="relative z-10">
           <h2 className="text-4xl font-bold leading-tight text-balance">
@@ -90,7 +91,7 @@ function AuthPage() {
           </p>
         </div>
         <div className="text-xs text-primary-foreground/60 relative z-10">
-          © स्मार्टस्टडी AI
+          © ज्ञानसारथी AI
         </div>
       </div>
 
@@ -101,7 +102,7 @@ function AuthPage() {
             <div className="size-9 rounded-lg bg-hero grid place-items-center">
               <Sparkles className="size-5 text-primary-foreground" />
             </div>
-            <span className="font-bold">स्मार्टस्टडी AI</span>
+            <span className="font-bold">ज्ञानसारथी AI</span>
           </Link>
 
           <h1 className="text-3xl font-bold tracking-tight">
