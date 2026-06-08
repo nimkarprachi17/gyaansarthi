@@ -82,31 +82,62 @@ function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-hero opacity-[0.06]" aria-hidden />
-        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 py-20 sm:py-24 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground mb-6 shadow-soft">
+      <section className="relative overflow-hidden border-b border-border/60">
+        <div
+          className="absolute inset-0 -z-10 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 10%, hsl(var(--primary)/0.6), transparent 45%), radial-gradient(circle at 85% 30%, hsl(var(--saffron)/0.5), transparent 50%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground mb-7 shadow-soft">
             <GraduationCap className="size-3.5 text-saffron" />
-            छात्रों के लिए — हिंदी और English दोनों में
+            हिंदी-फर्स्ट लर्निंग प्लेटफ़ॉर्म
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-balance leading-[1.05]">
+
+          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight leading-[1.02]">
             <span className="bg-hero bg-clip-text text-transparent">ज्ञानसारथी AI</span>
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed">
-            किसी भी शैक्षणिक YouTube वीडियो को विस्तृत नोट्स, परीक्षा-स्तर के MCQ, विस्तृत समाधान और व्यक्तिगत अध्ययन विश्लेषण में बदलें।
+
+          <p className="mt-6 text-xl sm:text-2xl font-semibold text-foreground max-w-3xl mx-auto text-balance leading-snug">
+            YouTube वीडियो को बदलें विस्तृत नोट्स, परीक्षा-स्तर के MCQ, विस्तृत समाधान और व्यक्तिगत अध्ययन विश्लेषण में।
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link to="/auth">
-              <Button size="lg" className="bg-hero hover:opacity-90 text-primary-foreground shadow-elegant h-12 px-7 text-base">
-                अभी शुरू करें
+
+          <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+            CTET, UPSC, JEE, Engineering, CA और अन्य प्रतियोगी परीक्षाओं के लिए।
+          </p>
+
+          <div className="mt-9 flex flex-col sm:flex-row justify-center gap-3">
+            <Link to="/auth" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto bg-hero hover:opacity-90 text-primary-foreground shadow-elegant h-12 px-8 text-base">
+                अभी मुफ़्त शुरू करें
               </Button>
             </Link>
-            <a href="#how">
-              <Button size="lg" variant="outline" className="h-12 px-7 text-base">
-                डेमो देखें
+            <a href="#how" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 px-8 text-base">
+                कैसे काम करता है
               </Button>
             </a>
           </div>
+
+          {/* Trust checklist */}
+          <ul className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5 max-w-2xl mx-auto text-left text-sm">
+            {[
+              "YouTube वीडियो से स्वतः नोट्स",
+              "परीक्षा-स्तर के MCQ",
+              "विस्तृत समाधान",
+              "प्रगति विश्लेषण",
+              "स्मार्ट रिवीजन चीट शीट",
+              "हिंदी + English सपोर्ट",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2 text-foreground/85">
+                <CheckCircle2 className="size-4 text-primary mt-0.5 shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
 
           {/* Audience pills */}
           <div className="mt-10 flex flex-wrap justify-center gap-2">
@@ -123,16 +154,16 @@ function Landing() {
       </section>
 
       {/* Why choose */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
-        <div className="text-center mb-12">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
+        <div className="text-center mb-10 sm:mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             क्यों चुनें <span className="text-primary">ज्ञानसारथी AI</span>
           </h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-            एक प्लेटफ़ॉर्म पर वो सब कुछ जो परीक्षा की तैयारी के लिए चाहिए।
+            परीक्षा की तैयारी के लिए ज़रूरी हर टूल — एक ही जगह।
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {features.map((f, i) => (
             <div
               key={i}
