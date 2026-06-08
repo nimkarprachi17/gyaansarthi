@@ -2,7 +2,7 @@ export type Lang = "hi" | "en";
 
 export const t = {
   hi: {
-    appName: "स्मार्टस्टडी AI",
+    appName: "ज्ञानसारथी AI",
     tagline: "किसी भी YouTube वीडियो से बेहतरीन नोट्स और क्विज़ बनाएँ",
     subtitle: "वीडियो URL पेस्ट करें — AI आपके लिए नोट्स, मुख्य अवधारणाएँ और परीक्षा-स्तर के MCQ तैयार करेगा।",
     getStarted: "मुफ़्त में शुरू करें",
@@ -77,7 +77,7 @@ export const t = {
     tryAgain: "फिर से कोशिश करें",
   },
   en: {
-    appName: "SmartStudy AI",
+    appName: "GyaanSarthi AI",
     tagline: "Premium notes & quizzes from any YouTube video",
     subtitle: "Paste a YouTube URL — AI generates notes, key concepts, and exam-level MCQs.",
     getStarted: "Get Started Free",

@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/v/$id")({
-  head: () => ({ meta: [{ title: "वीडियो — स्मार्टस्टडी AI" }] }),
+  head: () => ({ meta: [{ title: "वीडियो — ज्ञानसारथी AI" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ retake: s.retake === 1 || s.retake === "1" ? 1 : undefined }),
   component: VideoWorkspace,
 });

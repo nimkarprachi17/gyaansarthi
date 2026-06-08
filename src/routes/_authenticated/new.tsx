@@ -12,7 +12,7 @@ import { Youtube, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/new")({
-  head: () => ({ meta: [{ title: "नया वीडियो — स्मार्टस्टडी AI" }] }),
+  head: () => ({ meta: [{ title: "नया वीडियो — ज्ञानसारथी AI" }] }),
   component: NewVideo,
 });
 
