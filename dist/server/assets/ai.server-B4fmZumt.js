@@ -1,27 +1,18 @@
-// Server-only AI helper. Calls Supabase Edge Function which uses Gemini.
 const SUPABASE_URL = "https://fhjfqyscvlmoxfjvszgr.supabase.co";
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
-
-export type Lang = "hi" | "en";
-
-export async function callAIJson<T = unknown>({
+async function callAIJson({
   system,
-  user,
-}: {
-  system: string;
-  user: string;
-  model?: string;
-}): Promise<T> {
+  user
+}) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-content`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "apiKey": SUPABASE_ANON_KEY,
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
     },
-    body: JSON.stringify({ system, user }),
+    body: JSON.stringify({ system, user })
   });
-
   if (!res.ok) {
     const txt = await res.text();
     if (res.status === 429) throw new Error("RATE_LIMIT: AI service is rate-limited. Please try again in a moment.");
@@ -29,58 +20,13 @@ export async function callAIJson<T = unknown>({
     console.error("AI error", res.status, txt);
     throw new Error(`AI error: ${res.status}`);
   }
-
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  
-  return data.result as T;
+  return data.result;
 }
-
-// ---------------- NOTES ----------------
-
-export type CheatSheet = {
-  formulas: { name: string; expression: string; when_to_use?: string; trap?: string }[];
-  most_important: string[];
-  frequently_asked: string[];
-  common_mistakes: string[];
-  memory_tricks: string[];
-  last_minute_points: string[];
-  // legacy fields kept optional for backward compatibility with older saved notes
-  quick_concepts?: string[];
-  exam_must_remember?: string[];
-  quick_tricks?: string[];
-};
-
-export type DetailedNote = {
-  heading: string;
-  concept: string;
-  explanation: string;
-  why_it_matters: string;
-  exam_relevance: string;
-  example?: string;
-  // legacy
-  body?: string;
-};
-
-export type NotesContent = {
-  summary: string;
-  key_concepts: { title: string; description: string }[];
-  detailed_notes: DetailedNote[];
-  definitions: { term: string; meaning: string }[];
-  examples: string[];
-  common_mistakes: string[];
-  exam_points: string[];
-  revision_notes: string[];
-  cheat_sheet: CheatSheet;
-};
-
-
-export async function generateNotes(transcript: string, lang: Lang, title?: string): Promise<NotesContent> {
+async function generateNotes(transcript, lang, title) {
   const isHi = lang === "hi";
-  const langInstruction = isHi
-    ? `IMPORTANT: सभी आउटपुट सरल, स्वाभाविक हिंदी में लिखें। तकनीकी शब्दों (जैसे Array, Database, Stack) को अंग्रेज़ी में रखें और कोष्ठक में हिंदी अर्थ दें। कठिन संस्कृत-निष्ठ शब्दों से बचें।`
-    : `IMPORTANT: Write all output in clear, professional English suitable for exam preparation.`;
-
+  const langInstruction = isHi ? `IMPORTANT: सभी आउटपुट सरल, स्वाभाविक हिंदी में लिखें। तकनीकी शब्दों (जैसे Array, Database, Stack) को अंग्रेज़ी में रखें और कोष्ठक में हिंदी अर्थ दें। कठिन संस्कृत-निष्ठ शब्दों से बचें।` : `IMPORTANT: Write all output in clear, professional English suitable for exam preparation.`;
   const system = `You are a top coaching-class teacher creating premium, exam-oriented study notes from a video transcript. ${langInstruction}
 
 Rules:
@@ -130,34 +76,24 @@ CRITICAL CHEAT SHEET RULES — this is NOT a summary of the notes:
 - Readable in 2-3 minutes. Cut everything non-essential.
 - For formula-heavy subjects: include formulas with "when_to_use" + "trap". For theory subjects: leave formulas as [].
 - All strings plain text, NO markdown/LaTeX/emoji. Each bullet under 140 chars.`;
+  const user = `${title ? `Video title: ${title}
 
+` : ""}Transcript:
+"""
+${transcript.slice(0, 6e4)}
+"""
 
-  const user = `${title ? `Video title: ${title}\n\n` : ""}Transcript:\n"""\n${transcript.slice(0, 60000)}\n"""\n\nGenerate the study notes JSON now.`;
-
-  return callAIJson<NotesContent>({ system, user });
+Generate the study notes JSON now.`;
+  return callAIJson({ system, user });
 }
-
-// ---------------- QUIZ ----------------
-
-export type QuizQuestion = {
-  question: string;
-  options: string[]; // 4 options
-  correct_index: number; // 0-3
-  explanation: string;
-  difficulty: "easy" | "medium" | "hard";
-  concept: string;
-};
-
-export async function generateQuiz(transcript: string, lang: Lang, title?: string, avoidQuestions: string[] = []): Promise<QuizQuestion[]> {
+async function generateQuiz(transcript, lang, title, avoidQuestions = []) {
   const isHi = lang === "hi";
-  const langInstruction = isHi
-    ? `सभी प्रश्न, विकल्प, और स्पष्टीकरण सरल हिंदी में लिखें। तकनीकी शब्द अंग्रेज़ी में रखें।`
-    : `Write all questions, options, and explanations in clear English.`;
+  const langInstruction = isHi ? `सभी प्रश्न, विकल्प, और स्पष्टीकरण सरल हिंदी में लिखें। तकनीकी शब्द अंग्रेज़ी में रखें।` : `Write all questions, options, and explanations in clear English.`;
+  const avoidBlock = avoidQuestions.length > 0 ? `
 
-  const avoidBlock = avoidQuestions.length > 0
-    ? `\n\nIMPORTANT — DO NOT REPEAT these previously-asked questions or any near-paraphrase. Generate FRESH questions covering different angles, subtopics, scenarios, and edge cases:\n${avoidQuestions.slice(0, 40).map((q, i) => `${i + 1}. ${q}`).join("\n")}\n`
-    : "";
-
+IMPORTANT — DO NOT REPEAT these previously-asked questions or any near-paraphrase. Generate FRESH questions covering different angles, subtopics, scenarios, and edge cases:
+${avoidQuestions.slice(0, 40).map((q, i) => `${i + 1}. ${q}`).join("\n")}
+` : "";
   const system = `You are a senior exam-setter creating a challenging quiz from a video transcript. ${langInstruction}
 
 Strict rules:
@@ -182,19 +118,26 @@ Strict rules:
     }
   ]
 }`;
+  const user = `${title ? `Video title: ${title}
 
-  const user = `${title ? `Video title: ${title}\n\n` : ""}Transcript:\n"""\n${transcript.slice(0, 60000)}\n"""${avoidBlock}\n\nGenerate the quiz JSON now.`;
+` : ""}Transcript:
+"""
+${transcript.slice(0, 6e4)}
+"""${avoidBlock}
 
-  const res = await callAIJson<{ questions: QuizQuestion[] }>({ system, user });
+Generate the quiz JSON now.`;
+  const res = await callAIJson({ system, user });
   if (!Array.isArray(res?.questions) || res.questions.length === 0) {
     throw new Error("AI returned no questions");
   }
-  // Validate
-  return res.questions
-    .filter((q) => q && Array.isArray(q.options) && q.options.length === 4 && typeof q.correct_index === "number")
-    .map((q) => ({
-      ...q,
-      correct_index: Math.max(0, Math.min(3, q.correct_index)),
-      difficulty: ["easy", "medium", "hard"].includes(q.difficulty) ? q.difficulty : "medium",
-    }));
+  return res.questions.filter((q) => q && Array.isArray(q.options) && q.options.length === 4 && typeof q.correct_index === "number").map((q) => ({
+    ...q,
+    correct_index: Math.max(0, Math.min(3, q.correct_index)),
+    difficulty: ["easy", "medium", "hard"].includes(q.difficulty) ? q.difficulty : "medium"
+  }));
 }
+export {
+  callAIJson,
+  generateNotes,
+  generateQuiz
+};
