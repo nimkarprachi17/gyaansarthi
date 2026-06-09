@@ -1,0 +1,1 @@
+import{c}from"./sparkles-xXE83WQd.js";const o=[["path",{d:"m12 19-7-7 7-7",key:"1l729n"}],["path",{d:"M19 12H5",key:"x3x0zl"}]],r=c("arrow-left",o);const e=[["circle",{cx:"12",cy:"12",r:"10",key:"1mglay"}],["path",{d:"M12 6v6l4 2",key:"mmk7yg"}]],a=c("clock",e);export{r as A,a as C};
