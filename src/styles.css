@@ -126,3 +126,6 @@
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .text-balance { text-wrap: balance; }
 }
+[data-lovable-badge], .lovable-badge, a[href*="lovable"] {
+  display: none !important;
+}
