@@ -150,6 +150,34 @@ function Landing() {
               </span>
             ))}
           </div>
+        {/* Product preview mockup */}
+          <div className="mt-14 mx-auto max-w-2xl rounded-2xl border border-border bg-card shadow-elegant overflow-hidden text-left">
+            <div className="bg-muted/50 border-b border-border px-4 py-2.5 flex items-center gap-2">
+              <div className="size-2.5 rounded-full bg-red-400"></div>
+              <div className="size-2.5 rounded-full bg-yellow-400"></div>
+              <div className="size-2.5 rounded-full bg-green-400"></div>
+              <span className="ml-2 text-xs text-muted-foreground">ज्ञानसारथी AI — नोट्स</span>
+            </div>
+            <div className="p-5 space-y-4 text-sm">
+              <div className="rounded-lg border border-border bg-background p-3.5">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">अवधारणा</p>
+                <p className="text-foreground/80 text-xs leading-relaxed">कृषि मजदूर मौसमी रोजगार की स्थिति में जीते हैं — बुवाई, निराई और कटाई के दौरान ही काम मिलता है।</p>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-3.5">
+                <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">परीक्षा में महत्व</p>
+                <p className="text-foreground/80 text-xs leading-relaxed">Assertion-Reasoning प्रश्नों में पूछा जाता है — मजदूर गरीब क्यों रहते हैं, इसका कारण बताएं।</p>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-3.5">
+                <p className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-1">सामान्य गलतियाँ</p>
+                <p className="text-foreground/80 text-xs leading-relaxed">Red Fort को Sandstone समझना सही है, Taj Mahal को नहीं — वो Metamorphic Marble है।</p>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-3.5">
+                <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">याद करने की ट्रिक</p>
+                <p className="text-foreground/80 text-xs leading-relaxed">NIFE: Ni (Nickel) + FE (Ferrous/Iron) = Earth's Core. PPP: Patwari-Paimaish-Paper।</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
