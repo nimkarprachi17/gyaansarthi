@@ -1,7 +1,6 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -126,6 +125,5 @@
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .text-balance { text-wrap: balance; }
 }
-[data-lovable-badge], .lovable-badge, a[href*="lovable"] {
-  display: none !important;
-}
+[data-lovable-badge] { visibility: hidden; position: absolute; }
+.lovable-badge { visibility: hidden; position: absolute; }
