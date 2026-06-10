@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,17 +58,28 @@ function AuthPage() {
   };
 
   const handleGoogle = async () => {
-    setLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      navigate({ to: "/dashboard", replace: true });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google साइन-इन विफल");
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    if (error) throw error;
+
+    // Supabase will redirect automatically
+  } catch (err) {
+    toast.error(
+      err instanceof Error
+        ? err.message
+        : "Google साइन-इन विफल"
+    );
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
