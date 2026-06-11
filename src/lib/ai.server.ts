@@ -1,9 +1,16 @@
 // Server-only AI helper. Calls Supabase Edge Function which uses Gemini.
-const SUPABASE_URL = "https://wasiwwmwkxpvtygztoqc.supabase.co";
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_CW30k5YY6bFx9dpni8Z4zw_gb3iJFvO";
+const SUPABASE_URL =
+  process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+
+const SUPABASE_ANON_KEY =
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.SUPABASE_PUBLISHABLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error("Missing Supabase configuration");
+}
 
 export type Lang = "hi" | "en";
-
 export async function callAIJson<T = unknown>({
   system,
   user,
@@ -13,14 +20,14 @@ export async function callAIJson<T = unknown>({
   model?: string;
 }): Promise<T> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-content`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apiKey": SUPABASE_ANON_KEY,
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({ system, user }),
-  });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    apiKey: SUPABASE_ANON_KEY as string,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY as string}`,
+  },
+  body: JSON.stringify({ system, user }),
+});
 
   if (!res.ok) {
     const txt = await res.text();
