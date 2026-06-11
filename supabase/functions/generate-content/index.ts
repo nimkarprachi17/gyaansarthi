@@ -24,7 +24,10 @@ async function callGemini(system: string, user: string): Promise<unknown> {
 
   if (!res.ok) {
     const txt = await res.text();
-    if (res.status === 429) throw new Error("RATE_LIMIT");
+    if (res.status === 429) {
+      const txt = await res.text();
+      throw new Error(`RATE_LIMIT: ${txt}`);
+    }
     if (res.status === 402) throw new Error("CREDITS");
     throw new Error(`Gemini error: ${res.status} ${txt}`);
   }
