@@ -34,7 +34,7 @@ export async function callAIJson<T = unknown>({
     if (res.status === 429) throw new Error("RATE_LIMIT: AI service is rate-limited. Please try again in a moment.");
     if (res.status === 402) throw new Error("CREDITS: AI credits exhausted.");
     console.error("AI error", res.status, txt);
-    throw new Error(`AI error: ${res.status}`);
+    throw new Error(`AI error ${res.status}: ${txt}`);
   }
 
   const data = await res.json();

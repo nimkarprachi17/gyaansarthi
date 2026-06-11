@@ -56,9 +56,9 @@ export default {
     }
 
     try {
-      const { type, system, user } = await req.json();
+      const {system, user } = await req.json();
 
-      if (!type || !system || !user) {
+      if (!system || !user) {
         return Response.json({ error: "Missing type, system, or user" }, {
           status: 400,
           headers: { "Access-Control-Allow-Origin": "*" },
@@ -72,11 +72,20 @@ export default {
       });
 
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      return Response.json({ error: message }, {
+    console.error("FUNCTION ERROR:", err);
+
+    const message =
+      err instanceof Error
+        ? `${err.name}: ${err.message}`
+        : JSON.stringify(err);
+
+    return Response.json(
+      { error: message },
+      {
         status: 500,
         headers: { "Access-Control-Allow-Origin": "*" },
-      });
-    }
+      }
+    );
+  }
   },
 };
