@@ -135,7 +135,13 @@ function Dashboard() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {videos.map((v) => (
-              <Link key={v.id} to="/v/$id" params={{ id: v.id }} className="group">
+              <Link
+                key={v.id}
+                to="/v/$id"
+                params={{ id: v.id }}
+                search={{ retake: undefined }}
+                className="group"
+              >
                 <article className="rounded-2xl border border-border bg-card overflow-hidden shadow-soft hover:shadow-elegant hover:border-primary/40 transition-all">
                   <div className="aspect-video bg-muted overflow-hidden relative">
                     <img src={youtubeThumb(v.youtube_id)} alt={v.title ?? ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
