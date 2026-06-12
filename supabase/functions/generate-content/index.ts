@@ -13,7 +13,7 @@ async function callGemini(system: string, user: string): Promise<unknown> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -24,12 +24,16 @@ async function callGemini(system: string, user: string): Promise<unknown> {
 
   if (!res.ok) {
     const txt = await res.text();
+
     if (res.status === 429) {
-      const txt = await res.text();
       throw new Error(`RATE_LIMIT: ${txt}`);
     }
-    if (res.status === 402) throw new Error("CREDITS");
-    throw new Error(`Gemini error: ${res.status} ${txt}`);
+
+    if (res.status === 402) {
+      throw new Error(`CREDITS: ${txt}`);
+    }
+
+    throw new Error(`Gemini error ${res.status}: ${txt}`);
   }
 
   const data = await res.json();
